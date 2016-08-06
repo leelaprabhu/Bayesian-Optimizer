@@ -8,6 +8,7 @@ import numpy.random as nprand
 from sklearn import gaussian_process
 import threading
 from threading import Thread,Semaphore
+import sys
 
 def f1(param):
     param=map(lambda x: float(x), param)
@@ -85,7 +86,7 @@ def islandBest(seed, Xa, Sa, thNo):
         fitf=fBulk(indi[:,0]) #np.asarray(map(lambda x: f(x),indi[:,0]))
         fitg=gBulk(indi[:,0]) #np.asarray(map(lambda x: g(x),indi[:,0]))
         fit=fitf+10000000.0*fitg
-        X1=[x for (y,x) in sorted(zip(fit,indi), key=lambda pair: pair[0])]
+        X1=np.asarray([x for (y,x) in sorted(zip(fit,indi), key=lambda pair: pair[0])])
         parents=X1[:u]
         Xa2=np.asarray([[0.0]*n]*l)
         Sa2=np.asarray([[0.0]*n]*l)
@@ -93,18 +94,24 @@ def islandBest(seed, Xa, Sa, thNo):
         randno1=nprand.randn((l-u+1),n)
         randno2=nprand.randn((l-u+1))
         randno3=nprand.randn((l-u+1),n)
-        for k in range(l):
+        o=parents[0][0]
+        Xa2[:u-1]=map(lambda p1,p2: p1+r*(o-p2),parents[:u-1,0,:],parents[1:u,0,:])
+        Sa2[:u-1]=parents[:u-1,0,:]
+        for k in range(u,l):
             i=k%u
-            if (k<(u-1)):
-                p1 = parents[i][0]
-                p2 = parents[i+1][0]
-                o=parents[0][0]
-                Xa2[k] = p1 + r*(o-p2)
-                Sa2[k] = parents[i][1]
-            else:
-                Sa2t[k-u+1]=parents[i][1]*np.exp(t2*randno2[k-u+1]+t*randno1[k-u+1])
-                Xa2[k]=parents[i][0]+Sa2t[k-u+1]*randno3[k-u+1]
-                Sa2[k]=parents[i][1]+a*(Sa2t[k-u+1]-parents[i][1])
+#            if (k<(u-1)):
+#                p1 = parents[i][0]
+#                p2 = parents[i+1][0]
+#                o=parents[0][0]
+#                Xa2[k] = p1 + r*(o-p2)
+#                Sa2[k] = parents[i][1]
+#            else:
+#                Sa2t[k-u+1]=parents[i][1]*np.exp(t2*randno2[k-u+1]+t*randno1[k-u+1])
+#                Xa2[k]=parents[i][0]+Sa2t[k-u+1]*randno3[k-u+1]
+#                Sa2[k]=parents[i][1]+a*(Sa2t[k-u+1]-parents[i][1])
+            Sa2t[k-u+1]=parents[i][1]*np.exp(t2*randno2[k-u+1]+t*randno1[k-u+1])
+            Xa2[k]=parents[i][0]+Sa2t[k-u+1]*randno3[k-u+1]
+            Sa2[k]=parents[i][1]+a*(Sa2t[k-u+1]-parents[i][1])
         minIters[1:]=minIters[0:-1]
         minIters[0]=f(parents[0][0])
         print str(minIters[0])+" "+str(thNo)
@@ -232,7 +239,7 @@ class myThread (threading.Thread):
         global rPick
         while(1):
             Xa=np.concatenate((nprand.uniform(0.0,2.0,[l,1]),nprand.uniform(0.0,0.1,[l,1]),nprand.uniform(0.0,0.05,[l,1]),nprand.uniform(0.0,1.0,[l,1])),axis=1)
-            [besta,X,S]=islandBestLast(rPick[i],Xa,Sa,i)
+            [besta,X,S]=islandBest(rPick[i],Xa,Sa,i)
             best[i]=besta
             b1.wait(self.name)
             #print str(best)+"~~~~~~~~"+str(i)+"~~~~~~~~"+str(besta)
@@ -276,9 +283,9 @@ def startAll():
         threads[i].start()
 
 startAll()
-while(1):
+while(itermain<250):
     b2.wait("Main")
-    if(itermain<200):
+    if(itermain<500):
         randomIter=2.0
     else:
         randomIter=3.0
@@ -318,6 +325,8 @@ while(1):
 for thr in threads:
     thr.join()
 
+np.save('Xi'+sys.argv[0],Xi)
+np.save('yi'+sys.argv[0],yi)
 #[best1,Xa1,Sa1]=islandBest(123,Xa,Sa)
 #[best2,Xa2,Sa2]=islandBest(58,Xa,Sa)
 #[best3,Xa3,Sa3]=islandBest(9,Xa,Sa)
