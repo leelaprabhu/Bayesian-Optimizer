@@ -25,7 +25,7 @@ def g(Xa):
     penalty=(sum((can-Xa)**2.0)/n)**0.5
     return penalty
 
-l=500 #lambda
+l=200 #lambda
 r=0.85
 a=0.2
 u=l/5
