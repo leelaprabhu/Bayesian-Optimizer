@@ -3,7 +3,6 @@ import numpy as np
 from matplotlib.pylab import *
 import matplotlib.pylab as pylab
 from numpy import genfromtxt
-
 #R=[20.0, 19.608, 16.373, 15.789, 12.185, 11.906]
 #T=[[-0.068, -0.073, -0.050, -0.056, -0.038, -0.034],
 #   [0.022, 0.019, 0.001, 0.011, -0.166, 0.003],
@@ -28,6 +27,14 @@ v47=[104.26,    7.56,       15.42,    40.34,    0.0,    26.88];
 init13 = genfromtxt('init13.csv', delimiter=',')
 bcd13 = genfromtxt('bcd13.csv', delimiter=',')
 def cycle13(g2,t):
+    global v16
+    global v34
+    global R
+    global T
+    global m
+    global h
+    global D
+    global t1_2
     dg=np.asarray([[0.0]*30]*6)
     g=g2.reshape([6,30]);
     for a in range(6): #gene
